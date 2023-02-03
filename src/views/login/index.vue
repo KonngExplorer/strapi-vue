@@ -8,10 +8,11 @@ import { useNav } from "@/layout/hooks/useNav";
 import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
-import { bg, avatar, illustration } from "./utils/static";
+import { bg, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { ref, reactive, toRaw, onMounted, onBeforeUnmount } from "vue";
+import { onBeforeUnmount, onMounted, reactive, ref, toRaw } from "vue";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
+import { getVerifyCode } from "@/api/support";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
@@ -34,7 +35,10 @@ const { title } = useNav();
 
 const ruleForm = reactive({
   username: "admin",
-  password: "admin123"
+  password: "123456",
+  img: "",
+  verifyCodeToken: "",
+  code: ""
 });
 
 const onLogin = async (formEl: FormInstance | undefined) => {
@@ -43,7 +47,12 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid, fields) => {
     if (valid) {
       useUserStoreHook()
-        .loginByUsername({ username: ruleForm.username, password: "admin123" })
+        .loginByUsername({
+          username: ruleForm.username,
+          password: ruleForm.password,
+          verifyCodeToken: ruleForm.verifyCodeToken,
+          code: ruleForm.code
+        })
         .then(res => {
           if (res.success) {
             // 获取后端路由
@@ -69,6 +78,13 @@ function onkeypress({ code }: KeyboardEvent) {
 
 onMounted(() => {
   window.document.addEventListener("keypress", onkeypress);
+
+  getVerifyCode().then(res => {
+    if (res.success) {
+      ruleForm.img = res.data.img;
+      ruleForm.verifyCodeToken = res.data.verifyCodeToken;
+    }
+  });
 });
 
 onBeforeUnmount(() => {
@@ -127,14 +143,50 @@ onBeforeUnmount(() => {
             </Motion>
 
             <Motion :delay="150">
-              <el-form-item prop="password">
+              <el-form-item
+                :rules="[
+                  {
+                    required: true,
+                    message: '请输入6-20位密码',
+                    trigger: 'blur',
+                    range: {
+                      min: 6,
+                      max: 20
+                    }
+                  }
+                ]"
+                prop="password"
+              >
                 <el-input
                   clearable
-                  show-password
                   v-model="ruleForm.password"
                   placeholder="密码"
                   :prefix-icon="useRenderIcon(Lock)"
                 />
+              </el-form-item>
+            </Motion>
+
+            <Motion :delay="150">
+              <el-form-item
+                :rules="[
+                  {
+                    required: true,
+                    message: '请输入验证码',
+                    trigger: 'blur'
+                  }
+                ]"
+                prop="code"
+              >
+                <div class="tw-w-1/2">
+                  <img
+                    class="tw-w-full tw-h-[40px]"
+                    :src="ruleForm.img"
+                    alt="验证码"
+                  />
+                </div>
+                <div class="tw-w-1/2">
+                  <el-input v-model="ruleForm.code" placeholder="验证码" />
+                </div>
               </el-form-item>
             </Motion>
 

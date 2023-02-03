@@ -1,21 +1,23 @@
+/*! @import */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer components {
-  .flex-c {
+  .tw-flex-c {
     @apply flex justify-center items-center;
   }
 
-  .flex-ac {
+  .tw-flex-ac {
     @apply flex justify-around items-center;
   }
 
-  .flex-bc {
+  .tw-flex-bc {
     @apply flex justify-between items-center;
   }
 
-  .navbar-bg-hover {
+  .tw-navbar-bg-hover {
     @apply dark:text-white dark:hover:!bg-[#242424];
   }
 }
